@@ -47,6 +47,7 @@ async function run() {
         // Send a ping to confirm a successful connection
 
         const usersCollection = client.db("precisionMartial").collection("users");
+        const classesCollection = client.db("precisionMartial").collection("classes");
 
         app.post('/jwt', (req, res) => {
             const user = req.body;
@@ -60,7 +61,6 @@ async function run() {
             const user = req.body;
             const result = await usersCollection.insertOne(user);
             res.send(result);
-            console.log(result);
         })
 
         app.get('/allUsers', async (req, res) => {
@@ -68,6 +68,12 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/allUsers/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const result = await usersCollection.findOne(query);
+            res.send(result);
+        })
         app.get('/allUsers/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
 
@@ -124,6 +130,13 @@ async function run() {
             const result = await usersCollection.deleteOne(query);
             res.send(result);
           })
+
+        //classes
+        app.post('/classes', async(req, res) => {
+            const addClass = req.body;
+            const result = await classesCollection.insertOne(addClass);
+            res.send(result);
+        })
 
 
 
