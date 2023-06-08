@@ -148,6 +148,29 @@ async function run() {
             res.send(result);
         })
 
+        app.patch('/classes/approved/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    status: 'approved'
+                }
+            }
+            const result = await classesCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+        app.patch('/classes/deny/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    status: 'deny'
+                }
+            }
+            const result = await classesCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
 
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
