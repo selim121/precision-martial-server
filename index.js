@@ -48,6 +48,8 @@ async function run() {
 
         const usersCollection = client.db("precisionMartial").collection("users");
         const classesCollection = client.db("precisionMartial").collection("classes");
+        const selectedClassesCollection = client.db("precisionMartial").collection("selectedClasses");
+
 
         app.post('/jwt', (req, res) => {
             const user = req.body;
@@ -218,8 +220,28 @@ async function run() {
               res.status(500).json({ error: 'An error occurred while fetching instructors' });
             }
           });
+          app.get('/approved-classes', async (req, res) => {
+            try {
+              const classes = await classesCollection.find({ status: 'approved' }).toArray();
+              res.json(classes);
+            } catch (error) {
+              console.error(error);
+              res.status(500).json({ error: 'An error occurred while fetching instructors' });
+            }
+          });
           
+          app.get('/classes/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await classesCollection.findOne(query);
+            res.send(result);
+        })
 
+        app.post('/selectedClasses', async (req, res) => {
+            const selectClass = req.body;
+            const result = await selectedClassesCollection.insertOne(selectClass);
+            res.send(result);
+        })
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
