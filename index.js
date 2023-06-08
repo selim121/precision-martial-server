@@ -77,8 +77,8 @@ async function run() {
         app.get('/allUsers/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
 
-            if(req.decoded.email !== email) {
-                res.send({admin: false});
+            if (req.decoded.email !== email) {
+                res.send({ admin: false });
             }
 
             const query = { email: email };
@@ -89,21 +89,22 @@ async function run() {
 
         app.patch('/allUsers/admin/:id', async (req, res) => {
             const id = req.params.id;
-            const filter = { _id: new ObjectId(id) };
-            const updateDoc = {
-                $set: {
-                    role: 'admin'
-                }
+            try {
+              const filter = { _id: new ObjectId(id) };
+              const updateDoc = { $set: { role: 'admin' } };
+              const result = await usersCollection.updateOne(filter, updateDoc);
+              res.send(result);
+            } catch (error) {
+              res.status(400).send({ error: true, message: 'Invalid ID' });
             }
-            const result = await usersCollection.updateOne(filter, updateDoc);
-            res.send(result);
-        })
+          });
+          
 
         app.get('/allUsers/instructor/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
 
-            if(req.decoded.email !== email) {
-                res.send({instructor: false});
+            if (req.decoded.email !== email) {
+                res.send({ instructor: false });
             }
 
             const query = { email: email };
@@ -114,34 +115,35 @@ async function run() {
 
         app.patch('/allUsers/instructor/:id', async (req, res) => {
             const id = req.params.id;
-            const filter = { _id: new ObjectId(id) };
-            const updateDoc = {
-                $set: {
-                    role: 'instructor'
-                }
+            try {
+              const filter = { _id: new ObjectId(id) };
+              const updateDoc = { $set: { role: 'instructor' } };
+              const result = await usersCollection.updateOne(filter, updateDoc);
+              res.send(result);
+            } catch (error) {
+              res.status(400).send({ error: true, message: 'Invalid ID' });
             }
-            const result = await usersCollection.updateOne(filter, updateDoc);
-            res.send(result);
-        })
+          });
+          
 
         app.delete('/allUsers/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await usersCollection.deleteOne(query);
             res.send(result);
-          })
+        })
 
         //classes
-        app.post('/classes', async(req, res) => {
+        app.post('/classes', async (req, res) => {
             const addClass = req.body;
             const result = await classesCollection.insertOne(addClass);
             res.send(result);
         })
-        app.get('/classes', async(req, res) => {
+        app.get('/classes', async (req, res) => {
             const result = await classesCollection.find({}).toArray();
             res.send(result);
         })
-        app.get('/classes/:email', async(req, res) => {
+        app.get('/classes/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
             const result = await classesCollection.find(query).toArray();
@@ -170,6 +172,54 @@ async function run() {
             const result = await classesCollection.updateOne(filter, updateDoc);
             res.send(result);
         })
+
+        // app.get('/update/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     try {
+        //       const query = { _id: new ObjectId(id) };
+        //       const result = await classesCollection.findOne(query);
+        //       res.send(result);
+        //     } catch (error) {
+        //       res.status(400).send({ error: true, message: 'Invalid ID' });
+        //     }
+        //   });
+
+        app.put('/classes/:id/feedback', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const feedback = req.body.feedback;
+            const updateDoc = {
+              $set: {
+                feedback: feedback
+              }
+            };
+          
+            const result = await classesCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+          });
+
+        app.put('/classes/update/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updateClass = req.body;
+            const updateDoc = {
+                $set: {
+                    name: updateClass.name,
+                    email: updateClass.email,
+                    className: updateClass.className,
+                    price: updateClass.price,
+                    seats: updateClass.seats,
+                    photo: updateClass.photo,
+                },
+            };
+          
+            const result = await classesCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+          });
+          
+          
 
 
 
