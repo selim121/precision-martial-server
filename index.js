@@ -173,16 +173,6 @@ async function run() {
             res.send(result);
         })
 
-        // app.get('/update/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     try {
-        //       const query = { _id: new ObjectId(id) };
-        //       const result = await classesCollection.findOne(query);
-        //       res.send(result);
-        //     } catch (error) {
-        //       res.status(400).send({ error: true, message: 'Invalid ID' });
-        //     }
-        //   });
 
         app.put('/classes/:id/feedback', async (req, res) => {
             const id = req.params.id;
@@ -219,8 +209,16 @@ async function run() {
             res.send(result);
           });
           
+          app.get('/allInstructors', async (req, res) => {
+            try {
+              const users = await usersCollection.find({ role: 'instructor' }).toArray();
+              res.json(users);
+            } catch (error) {
+              console.error(error);
+              res.status(500).json({ error: 'An error occurred while fetching instructors' });
+            }
+          });
           
-
 
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
