@@ -48,7 +48,7 @@ async function run() {
 
         const usersCollection = client.db("precisionMartial").collection("users");
         const classesCollection = client.db("precisionMartial").collection("classes");
-        const selectedClassesCollection = client.db("precisionMartial").collection("selectedClasses");
+        const enrolledClassesCollection = client.db("precisionMartial").collection("enrolledClasses");
 
 
         app.post('/jwt', (req, res) => {
@@ -237,11 +237,19 @@ async function run() {
             res.send(result);
         })
 
-        app.post('/selectedClasses', async (req, res) => {
-            const selectClass = req.body;
-            const result = await selectedClassesCollection.insertOne(selectClass);
+        app.post('/enrolledClasses', async (req, res) => {
+            const enrolledClass = req.body;
+            const result = await enrolledClassesCollection.insertOne(enrolledClass);
             res.send(result);
         })
+
+        app.get('/enrolledClasses/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const result = await enrolledClassesCollection.find(query).toArray();
+            res.send(result);
+        })
+
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
