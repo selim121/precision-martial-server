@@ -4,6 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY);
 const port = process.env.PORT || 4000;
 
 
@@ -43,7 +44,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         // Send a ping to confirm a successful connection
 
         const usersCollection = client.db("precisionMartial").collection("users");
@@ -92,15 +93,15 @@ async function run() {
         app.patch('/allUsers/admin/:id', async (req, res) => {
             const id = req.params.id;
             try {
-              const filter = { _id: new ObjectId(id) };
-              const updateDoc = { $set: { role: 'admin' } };
-              const result = await usersCollection.updateOne(filter, updateDoc);
-              res.send(result);
+                const filter = { _id: new ObjectId(id) };
+                const updateDoc = { $set: { role: 'admin' } };
+                const result = await usersCollection.updateOne(filter, updateDoc);
+                res.send(result);
             } catch (error) {
-              res.status(400).send({ error: true, message: 'Invalid ID' });
+                res.status(400).send({ error: true, message: 'Invalid ID' });
             }
-          });
-          
+        });
+
 
         app.get('/allUsers/instructor/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
@@ -118,15 +119,15 @@ async function run() {
         app.patch('/allUsers/instructor/:id', async (req, res) => {
             const id = req.params.id;
             try {
-              const filter = { _id: new ObjectId(id) };
-              const updateDoc = { $set: { role: 'instructor' } };
-              const result = await usersCollection.updateOne(filter, updateDoc);
-              res.send(result);
+                const filter = { _id: new ObjectId(id) };
+                const updateDoc = { $set: { role: 'instructor' } };
+                const result = await usersCollection.updateOne(filter, updateDoc);
+                res.send(result);
             } catch (error) {
-              res.status(400).send({ error: true, message: 'Invalid ID' });
+                res.status(400).send({ error: true, message: 'Invalid ID' });
             }
-          });
-          
+        });
+
 
         app.delete('/allUsers/:id', async (req, res) => {
             const id = req.params.id;
@@ -182,14 +183,14 @@ async function run() {
             const options = { upsert: true };
             const feedback = req.body.feedback;
             const updateDoc = {
-              $set: {
-                feedback: feedback
-              }
+                $set: {
+                    feedback: feedback
+                }
             };
-          
+
             const result = await classesCollection.updateOne(filter, updateDoc, options);
             res.send(result);
-          });
+        });
 
         app.put('/classes/update/:id', async (req, res) => {
             const id = req.params.id;
@@ -206,31 +207,31 @@ async function run() {
                     photo: updateClass.photo,
                 },
             };
-          
+
             const result = await classesCollection.updateOne(filter, updateDoc, options);
             res.send(result);
-          });
-          
-          app.get('/allInstructors', async (req, res) => {
+        });
+
+        app.get('/allInstructors', async (req, res) => {
             try {
-              const users = await usersCollection.find({ role: 'instructor' }).toArray();
-              res.json(users);
+                const users = await usersCollection.find({ role: 'instructor' }).toArray();
+                res.json(users);
             } catch (error) {
-              console.error(error);
-              res.status(500).json({ error: 'An error occurred while fetching instructors' });
+                console.error(error);
+                res.status(500).json({ error: 'An error occurred while fetching instructors' });
             }
-          });
-          app.get('/approved-classes', async (req, res) => {
+        });
+        app.get('/approved-classes', async (req, res) => {
             try {
-              const classes = await classesCollection.find({ status: 'approved' }).toArray();
-              res.json(classes);
+                const classes = await classesCollection.find({ status: 'approved' }).toArray();
+                res.json(classes);
             } catch (error) {
-              console.error(error);
-              res.status(500).json({ error: 'An error occurred while fetching instructors' });
+                console.error(error);
+                res.status(500).json({ error: 'An error occurred while fetching instructors' });
             }
-          });
-          
-          app.get('/classes/:id', async (req, res) => {
+        });
+
+        app.get('/classes/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await classesCollection.findOne(query);
@@ -250,14 +251,33 @@ async function run() {
             res.send(result);
         })
 
-        app.delete('/enrolledClasses/:id', async(req, res) => {
+        app.delete('/enrolledClasses/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await enrolledClassesCollection.deleteOne(query);
             res.send(result);
         })
-          
 
+        app.get('/payment/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await enrolledClassesCollection.findOne(query);
+            res.send(result);
+        })
+
+        //create payment
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card'],
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        })
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
