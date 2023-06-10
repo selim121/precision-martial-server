@@ -306,6 +306,13 @@ async function run() {
             const result = await classesCollection.updateOne(filter, updateDoc, options);
             res.send(result);
           });
+
+        app.get('/ongoingClasses/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const result = await paymentCollection.find(query).toArray();
+            res.send(result);
+        })
           
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
