@@ -311,6 +311,8 @@ async function run() {
             const email = req.params.email;
             const query = { email: email };
             const result = await paymentCollection.find(query).toArray();
+            // result.sort((a, b) => b.date - a.date);
+            result.reverse();
             res.send(result);
         })
           
