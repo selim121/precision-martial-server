@@ -9,7 +9,14 @@ const port = process.env.PORT || 4000;
 
 
 //middleware
-app.use(cors());
+const corsOptions ={
+    origin:'*', 
+    credentials:true,
+    optionSuccessStatus:200,
+ }
+ 
+ app.use(cors(corsOptions))
+// app.use(cors());
 app.use(express.json());
 
 
@@ -44,12 +51,13 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        // await client.connect();
+        //  client.connect();
         // Send a ping to confirm a successful connection
 
         const usersCollection = client.db("precisionMartial").collection("users");
         const classesCollection = client.db("precisionMartial").collection("classes");
         const enrolledClassesCollection = client.db("precisionMartial").collection("enrolledClasses");
+        const paymentCollection = client.db("precisionMartial").collection("payments");
 
 
         app.post('/jwt', (req, res) => {
@@ -277,6 +285,13 @@ async function run() {
             res.send({
                 clientSecret: paymentIntent.client_secret
             })
+        })
+
+
+        app.post('/payments', verifyJWT, async(req, res) => {
+            const payment = req.body;
+            const result = await paymentCollection.insertOne(payment);
+            res.send(result);
         })
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
