@@ -9,13 +9,13 @@ const port = process.env.PORT || 4000;
 
 
 //middleware
-const corsOptions ={
-    origin:'*', 
-    credentials:true,
-    optionSuccessStatus:200,
- }
- 
- app.use(cors(corsOptions))
+const corsOptions = {
+    origin: '*',
+    credentials: true,
+    optionSuccessStatus: 200,
+}
+
+app.use(cors(corsOptions))
 // app.use(cors());
 app.use(express.json());
 
@@ -161,6 +161,7 @@ async function run() {
             res.send(result);
         })
 
+
         app.patch('/classes/approved/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
@@ -238,41 +239,29 @@ async function run() {
                 res.status(500).json({ error: 'An error occurred while fetching instructors' });
             }
         });
-
-        app.get('/classes/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: new ObjectId(id) };
-            const result = await classesCollection.findOne(query);
-            res.send(result);
-        })
-
         app.post('/enrolledClasses', async (req, res) => {
             const enrolledClass = req.body;
             const result = await enrolledClassesCollection.insertOne(enrolledClass);
             res.send(result);
         })
-
         app.get('/enrolledClasses/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
             const result = await enrolledClassesCollection.find(query).toArray();
             res.send(result);
         })
-
         app.delete('/enrolledClasses/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await enrolledClassesCollection.deleteOne(query);
             res.send(result);
         })
-
         app.get('/payment/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await enrolledClassesCollection.findOne(query);
             res.send(result);
         })
-
         //create payment
         app.post('/create-payment-intent', verifyJWT, async (req, res) => {
             const { price } = req.body;
@@ -286,13 +275,38 @@ async function run() {
                 clientSecret: paymentIntent.client_secret
             })
         })
-
-
-        app.post('/payments', verifyJWT, async(req, res) => {
+        app.post('/payments', verifyJWT, async (req, res) => {
             const payment = req.body;
             const result = await paymentCollection.insertOne(payment);
             res.send(result);
         })
+        app.get('/payments/:id', async (req, res) => {
+            const classId = req.params.classId;
+            const query = { classId: classId };
+            const result = await paymentCollection.findOne(query);
+            res.send(result);
+        })
+        app.get('/confirmPayment/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await classesCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.patch('/confirmPayment/update/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+              $inc: {
+                seats: -1,
+                totalEnroll: 1
+              }
+            };
+            const options = { upsert: true };
+            const result = await classesCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+          });
+          
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
