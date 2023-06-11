@@ -315,6 +315,11 @@ async function run() {
             result.reverse();
             res.send(result);
         })
+
+        app.get('/popularClasses', async(req, res) => {
+            const result = await classesCollection.find({ totalEnroll: { $exists: true } }).sort({ totalEnroll: -1 }).limit(6).toArray();
+            res.send(result);
+        })
           
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
