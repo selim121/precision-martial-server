@@ -16,7 +16,6 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions))
-// app.use(cors());
 app.use(express.json());
 
 
@@ -311,13 +310,35 @@ async function run() {
             const email = req.params.email;
             const query = { email: email };
             const result = await paymentCollection.find(query).toArray();
-            // result.sort((a, b) => b.date - a.date);
+            // result.sort((a, b) => {
+            //     const dateTimeA = new Date(`${a.date} ${a.time}`);
+            //     const dateTimeB = new Date(`${b.date} ${b.time}`);
+            //     return dateTimeB - dateTimeA;
+            //   });
             result.reverse();
             res.send(result);
         })
 
         app.get('/popularClasses', async(req, res) => {
             const result = await classesCollection.find({ totalEnroll: { $exists: true } }).sort({ totalEnroll: -1 }).limit(6).toArray();
+            res.send(result);
+        })
+
+        app.patch('/instructorUpdate/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updateDoc = {
+              $inc: {
+                totalStudents: 1
+              }
+            };
+            const options = { upsert: true };
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+          });
+
+          app.get('/popularInstructors', async(req, res) => {
+            const result = await usersCollection.find({ totalStudents: { $exists: true } }).sort({ totalStudents: -1 }).limit(6).toArray();
             res.send(result);
         })
           
