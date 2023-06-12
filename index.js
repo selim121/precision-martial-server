@@ -75,6 +75,7 @@ async function run() {
 
         app.get('/allUsers', async (req, res) => {
             const result = await usersCollection.find({}).toArray();
+            result.reverse();
             res.send(result);
         })
 
@@ -151,12 +152,14 @@ async function run() {
         })
         app.get('/classes', async (req, res) => {
             const result = await classesCollection.find({}).toArray();
+            result.reverse();
             res.send(result);
         })
         app.get('/classes/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
             const result = await classesCollection.find(query).toArray();
+            result.reverse();
             res.send(result);
         })
 
@@ -247,6 +250,7 @@ async function run() {
             const email = req.params.email;
             const query = { email: email };
             const result = await enrolledClassesCollection.find(query).toArray();
+            result.reverse();
             res.send(result);
         })
         app.delete('/enrolledClasses/:id', async (req, res) => {
